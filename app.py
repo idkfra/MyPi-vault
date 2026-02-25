@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify, render_template
 import sqlite3
 
 app = Flask(__name__)
-db_name =  'path/to/your/.db'
+db_name =  'path/to/your/database.db'
 
 def init_db():
     with sqlite3.connect(db_name) as conn:
@@ -10,7 +10,7 @@ def init_db():
 
 @app.route('/')
 def index():
-    return render_template('yourindex.html')
+    return render_template('index.html')
 
     
 @app.route('/api/save', methods=['POST'])
@@ -27,8 +27,7 @@ def load():
         #iterative id,websit e password
         cursor = conn.execute('SELECT id, service, data FROM passwords')
         items = [{"id": row[0], "service": row[1], "data": row[2]} for row in cursor.fetchall()]
-        #cursor = conn.execute('SELECT service, data FROM passwords')
-       # items = [{"service": row[0], "data": row[1]} for row in cursor.fetchall()]
+    
     return jsonify(items)
 
 @app.route('/api/delete/<int:id>', methods=['DELETE'])
