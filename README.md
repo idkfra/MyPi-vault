@@ -3,10 +3,10 @@
 Un password manager sicuro e self-hosted su Raspberry Pi, accessibile da remoto tramite Tailscale con connessione HTTPS.
 
 ## ✨ Caratteristiche
-* **Self-Hosted:** I dati non lasciano mai il tuo Raspberry Pi.
-* **Accesso Remoto Sicuro:** Tramite Tailscale VPN, accessibile da smartphone e PC.
+* **Self-Hosted:** 
+* **Accesso Remoto Sicuro:** Tramite Tailscale VPN.
 * **HTTPS Nativo:** Reverse proxy Nginx configurato con certificati SSL forniti da Tailscale.
-* **Sempre Attivo:** Gestito tramite demone `systemd` per l'esecuzione in background.
+* **Sempre Attivo:** Gestito tramite `systemd` per l'esecuzione in background.
 
 ---
 
