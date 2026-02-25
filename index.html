@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pi-Manager</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #0d0f14;
+            --surface: #161922;
+            --surface2: #1e2230;
+            --border: #2a2f42;
+            --accent: #5b7cfa;
+            --accent2: #7c5bfa;
+            --green: #3dd68c;
+            --red: #f26b6b;
+            --orange: #f5a623;
+            --text: #e8eaf6;
+            --muted: #7b82a0;
+            --mono: 'Space Mono', monospace;
+            --sans: 'DM Sans', sans-serif;
+        }
+
+        body {
+            font-family: var(--sans);
+            background: var(--bg);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: var(--text);
+        }
+
+        /* Subtle grid background */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(91,124,250,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(91,124,250,0.04) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 680px;
+            position: relative;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .header h1 {
+            font-family: var(--mono);
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: var(--muted);
+            font-size: 13px;
+            margin-top: 6px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+
+        .card-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--muted);
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Master password card accent */
+        .card-master {
+            border-color: rgba(91,124,250,0.3);
+            background: linear-gradient(135deg, rgba(91,124,250,0.05), rgba(124,91,250,0.05));
+        }
+
+        /* Inputs */
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: var(--sans);
+            color: var(--text);
+            transition: border-color 0.2s, box-shadow 0.2s;
+            margin-bottom: 12px;
+        }
+
+        input:last-child { margin-bottom: 0; }
+
+        input::placeholder { color: var(--muted); }
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(91,124,250,0.12);
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 11px 20px;
+            border: none;
+            border-radius: 9px;
+            font-family: var(--sans);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            letter-spacing: 0.01em;
+        }
+
+        .btn:hover { transform: translateY(-1px); filter: brightness(1.1); }
+        .btn:active { transform: translateY(0); }
+
+        .btn-full { width: 100%; margin-top: 12px; padding: 13px; font-size: 14px; }
+
+        .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; }
+        .btn-green { background: var(--green); color: #0d0f14; }
+        .btn-red { background: rgba(242,107,107,0.15); color: var(--red); border: 1px solid rgba(242,107,107,0.25); }
+        .btn-orange { background: rgba(245,166,35,0.15); color: var(--orange); border: 1px solid rgba(245,166,35,0.25); }
+        .btn-ghost { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+
+        .btn-red:hover, .btn-orange:hover, .btn-ghost:hover { filter: brightness(1.2); transform: translateY(-1px); }
+
+        .table-wrapper {
+            margin-top: 20px;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .table-header h3 {
+            font-family: var(--mono);
+            font-size: 14px;
+            color: var(--text);
+        }
+
+        .count-badge {
+            background: rgba(91,124,250,0.15);
+            color: var(--accent);
+            border: 1px solid rgba(91,124,250,0.2);
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-family: var(--mono);
+            font-weight: 700;
+        }
+
+       
+        .table-scroll {
+            max-height: 360px;
+            overflow-y: auto;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            scrollbar-width: thin;
+            scrollbar-color: var(--border) transparent;
+        }
+
+        .table-scroll::-webkit-scrollbar { width: 6px; }
+        .table-scroll::-webkit-scrollbar-track { background: transparent; }
+        .table-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        thead {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        thead th {
+            background: var(--surface2);
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--muted);
+            font-weight: 600;
+            border-bottom: 1px solid var(--border);
+        }
+
+        thead th:last-child { text-align: right; }
+
+        tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: background 0.15s;
+        }
+
+        tbody tr:last-child { border-bottom: none; }
+
+        tbody tr:hover { background: rgba(91,124,250,0.04); }
+
+        tbody td {
+            padding: 14px 16px;
+            vertical-align: middle;
+        }
+
+        .service-cell {
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .service-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .password-cell {
+            font-family: var(--mono);
+            font-size: 13px;
+        }
+
+        .password-display {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .password-mask {
+            color: var(--muted);
+            letter-spacing: 0.15em;
+        }
+
+        .password-reveal {
+            color: var(--green);
+        }
+
+        .toggle-pass {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 2px;
+            opacity: 0.5;
+            transition: opacity 0.2s;
+            line-height: 1;
+        }
+
+        .toggle-pass:hover { opacity: 1; transform: none; }
+
+        .actions-cell {
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .actions-cell .btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            margin-left: 4px;
+        }
+
+        /* Empty state */
+        .empty {
+            text-align: center;
+            padding: 48px 20px;
+            color: var(--muted);
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+            opacity: 0.4;
+        }
+
+        .empty p {
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--surface2);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            opacity: 0;
+            transform: translateY(12px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        .toast.show { opacity: 1; transform: translateY(0); }
+
+      
+        @keyframes rowIn {
+            from { opacity: 0; transform: translateX(-6px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        tbody tr { animation: rowIn 0.2s ease forwards; }
+
+        @media (max-width: 580px) {
+            .actions-cell .btn span { display: none; }
+            thead th.hide-sm { display: none; }
+            td.hide-sm { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 Pi-Manager</h1>
+
+        </div>
+
+       
+        <div class="card card-master">
+            <div class="card-label">🔑 Master Password</div>
+            <input type="password" id="masterPwd" placeholder="Enter your master password">
+        </div>
+
+        
+        <div class="card">
+            <div class="card-label">➕ Add New Password</div>
+            <input type="text" id="service" placeholder="Service or website name">
+            <input type="password" id="password" placeholder="Password to save">
+            <button class="btn btn-green btn-full" onclick="savePassword()">💾 Save Password</button>
+        </div>
+
+      
+        <div class="card">
+            <div class="table-header">
+                <h3>Saved Passwords</h3>
+                <span class="count-badge" id="countBadge">—</span>
+            </div>
+            <button class="btn btn-primary btn-full" style="margin-top:0; margin-bottom:16px;" onclick="loadPasswords()">👁️ Show Passwords</button>
+            <div id="list"></div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2500);
+        }
+
+
+        async function savePassword() {
+            const master = document.getElementById('masterPwd').value;
+            const service = document.getElementById('service').value.trim();
+            const pass = document.getElementById('password').value;
+
+            if (!master || !service || !pass) {
+                showToast('⚠️ Fill all fields!');
+                return;
+            }
+
+            const encrypted = CryptoJS.AES.encrypt(pass, master).toString();
+            await fetch('/api/save', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ service, data: encrypted })
+            });
+
+            document.getElementById('service').value = '';
+            document.getElementById('password').value = '';
+            showToast('✅ Password saved successfully!');
+            loadPasswords();
+        }
+
+        async function loadPasswords() {
+            const master = document.getElementById('masterPwd').value;
+            if (!master) { showToast('⚠️ Enter your master password!'); return; }
+
+            const res = await fetch('/api/load');
+            const data = await res.json();
+            const listDiv = document.getElementById('list');
+            const badge = document.getElementById('countBadge');
+            listDiv.innerHTML = '';
+
+            if (data.length === 0) {
+                badge.textContent = '0';
+                listDiv.innerHTML = `
+                    <div class="empty">
+                        <div class="empty-icon">🔒</div>
+                        <p>No passwords saved yet.<br>Add your first one</p>
+                    </div>`;
+                return;
+            }
+
+          
+            const entries = [];
+            data.forEach(item => {
+                try {
+                    const bytes = CryptoJS.AES.decrypt(item.data, master);
+                    const original = bytes.toString(CryptoJS.enc.Utf8);
+                    if (original) entries.push({ ...item, plain: original });
+                } catch(e) {}
+            });
+
+            badge.textContent = entries.length;
+
+            // scrollable if data>5
+            const scrollable = entries.length > 5;
+
+            const wrapper = document.createElement('div');
+            if (scrollable) {
+                wrapper.className = 'table-scroll';
+            } else {
+                wrapper.style.borderRadius = '12px';
+                wrapper.style.border = '1px solid var(--border)';
+                wrapper.style.overflow = 'hidden';
+            }
+
+            wrapper.innerHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Service</th>
+                            <th class="hide-sm">Password</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>`;
+
+            listDiv.appendChild(wrapper);
+
+            const tbody = document.getElementById('tableBody');
+            entries.forEach((item, i) => {
+                const safePass = item.plain.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                const safeService = (item.service || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+                const tr = document.createElement('tr');
+                tr.style.animationDelay = `${i * 0.04}s`;
+                tr.innerHTML = `
+                    <td>
+                        <div class="service-cell">${safeService}</div>
+                    </td>
+                    <td class="password-cell hide-sm">
+                        <span class="password-reveal">${safePass}</span>
+                    </td>
+                    <td class="actions-cell">
+                        <button class="btn btn-ghost" onclick="copyText('${safePass}')">📋 <span>Copy</span></button>
+                        <button class="btn btn-orange" onclick="editPassword(${item.id}, '${safeService}')">✏️ <span>Edit</span></button>
+                        <button class="btn btn-red" onclick="deletePassword(${item.id})">🗑️ <span>Delete</span></button>
+                    </td>`;
+                tbody.appendChild(tr);
+            });
+
+            if (scrollable) {
+                showToast(`ℹ️ Showing ${entries.length} passwords`);
+            }
+        }
+
+
+        async function deletePassword(id) {
+            if (!confirm('Are you sure you want to delete this password?')) return;
+            await fetch(`/api/delete/${id}`, { method: 'DELETE' });
+            showToast('🗑️ Password deleted');
+            loadPasswords();
+        }
+
+        async function editPassword(id, service) {
+            const master = document.getElementById('masterPwd').value;
+            const newPass = prompt(`Enter new password for ${service}:`);
+            if (!newPass) return;
+
+            const encrypted = CryptoJS.AES.encrypt(newPass, master).toString();
+            await fetch(`/api/update/${id}`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ data: encrypted })
+            });
+            showToast('✏️ Password updated');
+            loadPasswords();
+        }
+
+        function copyText(text) {
+            navigator.clipboard.writeText(text).then(() => showToast('📋 Password copied'));
+        }
+    </script>
+</body>
+</html>
