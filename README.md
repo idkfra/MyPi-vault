@@ -1,8 +1,8 @@
-## 🔐 Password Manager Self-Hosted
+## Password Manager Self-Hosted
 
 Un password manager sicuro e self-hosted su Raspberry Pi, accessibile da remoto tramite Tailscale con connessione HTTPS.
 
-## ✨ Caratteristiche
+## Caratteristiche
 * **Self-Hosted:** 
 * **Accesso Remoto Sicuro:** Tramite Tailscale VPN.
 * **HTTPS Nativo:** Reverse proxy Nginx configurato con certificati SSL forniti da Tailscale.
@@ -10,7 +10,7 @@ Un password manager sicuro e self-hosted su Raspberry Pi, accessibile da remoto 
 
 ---
 
-## 🏗️ Architettura
+## Architettura
 
 1. **Tailscale:** Crea un tunnel sicuro, fornendo un IP privato (`100.x.x.x`) e un dominio MagicDNS (es. `tuo-dominio.ts.net`).
 2. **Nginx (Reverse Proxy):** Ascolta in HTTPS, gestisce i certificati SSL e passa il traffico all'applicazione locale in modo invisibile.
@@ -19,14 +19,14 @@ Un password manager sicuro e self-hosted su Raspberry Pi, accessibile da remoto 
 
 ---
 
-## ⚙️ Prerequisiti
+## Prerequisiti
 
 - Raspberry Pi OS
 - Python 3.7+
 - Tailscale 
 - Nginx
 
-## 🚀 Installazione
+## Installazione
 
 ### 1. Aggiorna il sistema
 
@@ -89,7 +89,7 @@ chmod 644 /home/pi/certs/cert.pem
 chmod 600 /home/pi/certs/key.pem
 ```
 
-## ⚙️ Configurazione
+##  Configurazione
 
 ### 1. Configura l'applicazione Flask
 
@@ -186,7 +186,7 @@ Verifica lo stato:
 sudo systemctl status vault.service
 ```
 
-## 🎯 Utilizzo
+## Utilizzo
 
 ### Accesso all'applicazione
 
