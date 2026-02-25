@@ -23,7 +23,7 @@ Un password manager sicuro e self-hosted su Raspberry Pi, accessibile da remoto 
 
 - Raspberry Pi OS
 - Python 3.7+
-- Tailscale installato con **MagicDNS abilitato**.
+- Tailscale 
 - Nginx
 
 ## 🚀 Installazione
